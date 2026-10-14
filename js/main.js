@@ -65,14 +65,6 @@ function bindControls() {
     openSubjectDialog({
       defaultColor: SUBJECT_COLORS[store.getState().subjects.length % SUBJECT_COLORS.length],
       onSave: (name, color) => safely(() => store.addSubject(name, color)),
-      const applyAllCheckbox = $('#apply-to-all-months');
-    const applyIndicator = $('#apply-indicator');
-    if (applyAllCheckbox) {
-      applyAllCheckbox.onchange = (e) => {
-        applyIndicator.textContent = e.target.checked ? '(Tak ✓)' : '(Tylko tutaj)';
-        e.target.parentElement.style.background = e.target.checked ? 'color-mix(in srgb, #0ea5e9 10%, transparent)' : 'transparent';
-    };
-  }
     });
     
   $('#sign-out').onclick = async () => { 
@@ -87,12 +79,11 @@ function bindControls() {
   const overlay = $('#overlay');
   
   $('#btn-settings').onclick = () => {
-    // Ukrywamy ewentualne okienka z zajęciami i pokazujemy ustawienia
     mainModal.hidden = true;
     settingsModal.hidden = false;
     overlay.classList.add('open');
     
-    // Zaznacz checkboxy na podstawie aktualnego stanu aplikacji
+    // Zaznacz checkboxy na podstawie aktualnego stanu
     const currentDays = store.getState().visibleDays;
     document.querySelectorAll('#settings-days input').forEach(input => {
       input.checked = currentDays.includes(Number(input.value));
@@ -100,18 +91,28 @@ function bindControls() {
   };
 
   $('#btn-save-settings').onclick = () => {
-    // Zbieramy wartości wszystkich zaznaczonych checkboxów
+    // Zbieramy wybrane checkboxy
     const selected = Array.from(document.querySelectorAll('#settings-days input:checked'))
       .map(input => Number(input.value));
       
-    if (selected.length === 0) return alert('Wybierz chociaż jeden dzień do wyświetlenia!');
+    if (selected.length === 0) return alert('Wybierz chociaż jeden dzień!');
     
     // Zapisujemy nowy stan kalendarza i zamykamy okienko
     store.setVisibleDays(selected);
     overlay.classList.remove('open');
     settingsModal.hidden = true;
-    mainModal.hidden = false; // Przywracamy domyślny kontener okienek
+    mainModal.hidden = false;
   };
+
+  // Animacja przycisku z ustawień z makiety
+  const applyAllCheckbox = $('#apply-to-all-months');
+  const applyIndicator = $('#apply-indicator');
+  if (applyAllCheckbox) {
+    applyAllCheckbox.onchange = (e) => {
+      applyIndicator.textContent = e.target.checked ? '(Tak ✓)' : '(Tylko tutaj)';
+      e.target.parentElement.style.background = e.target.checked ? 'color-mix(in srgb, #0ea5e9 10%, transparent)' : 'transparent';
+    };
+  }
 }
 
 async function init() {
