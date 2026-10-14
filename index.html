@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frekwencja na zajęciach</title>
+<style>
+:root{--bg:#f6f5f1;--sf:#fff;--tx:#1f1f1f;--mu:#6b6b6b;--bd:#e3e0d8;--ac:#4f46e5;--ok:#1f9d55;--no:#d64545;--ca:#8a8a8a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17171a;--sf:#222226;--tx:#ececec;--mu:#9a9aa2;--bd:#34343a;--ac:#8b85ff;--ok:#43c47a;--no:#ef6b6b;--ca:#9a9a9a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#17171a;--sf:#222226;--tx:#ececec;--mu:#9a9aa2;--bd:#34343a;--ac:#8b85ff;--ok:#43c47a;--no:#ef6b6b;--ca:#9a9a9a;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.app{display:grid;grid-template-columns:1fr 300px;gap:16px;max-width:1200px;margin:0 auto;padding:16px}
+@media(max-width:820px){.app{grid-template-columns:1fr}}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:14px}
+h2{margin:0;font-size:18px}h3{margin:0 0 10px;font-size:15px}
+.bar{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.bar h2{flex:1;text-transform:capitalize}
+button{font:inherit;cursor:pointer;border:1px solid var(--bd);background:var(--sf);color:var(--tx);border-radius:9px;padding:7px 12px}
+button:hover{border-color:var(--ac)}
+.pri{background:var(--ac);color:#fff;border-color:var(--ac)}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.dh{font-size:12px;color:var(--mu);text-align:center;padding:4px 0}
+.day{min-height:92px;border:1px solid var(--bd);border-radius:9px;padding:4px;cursor:pointer;overflow:hidden}
+.day:hover{border-color:var(--ac)}
+.day.o{opacity:.45}.day.t{outline:2px solid var(--ac)}
+.n{font-size:12px;color:var(--mu);margin-bottom:2px}
+.ch{font-size:11px;border-left:4px solid;border-radius:4px;padding:2px 4px;margin-bottom:2px;background:var(--bg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch.y{background:color-mix(in srgb,var(--ok) 20%,transparent)}
+.ch.n{background:color-mix(in srgb,var(--no) 20%,transparent)}
+.ch.c{text-decoration:line-through;color:var(--ca)}
+@media(max-width:820px){.day{min-height:64px}.ch{font-size:10px;padding:1px 2px}}
+.sub{border:1px solid var(--bd);border-radius:10px;padding:9px 10px;margin-bottom:8px;border-left:5px solid}
+.sub .r{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.pct{font-weight:700;font-size:18px}
+.mu{color:var(--mu);font-size:12px;margin-top:3px}
+.pb{height:6px;background:var(--bd);border-radius:4px;margin-top:6px;overflow:hidden}.pb i{display:block;height:100%}
+.x{border:none;background:none;color:var(--mu);padding:0 4px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:9}
+.ov.s{display:flex}
+.md{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:18px;width:100%;max-width:380px;max-height:90%;overflow:auto}
+label{display:block;font-size:12px;color:var(--mu);margin:10px 0 4px}
+input,select{font:inherit;width:100%;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.row{display:flex;gap:6px;flex-wrap:wrap}.row button{flex:1}
+.q button{flex:none;padding:5px 9px;font-size:13px}
+.st button{padding:11px;flex:1 1 100%;text-align:left}
+.st .on{border-width:2px}
+.ft{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.ft button{font-size:12px;padding:5px 9px;color:var(--mu)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+    <div class="bar">
+      <button id="prev">‹</button><h2 id="ttl"></h2><button id="today">Dziś</button><button id="next">›</button>
+    </div>
+    <div class="cal" id="cal"></div>
+  </div>
+  <div>
+    <div class="card">
+      <h3>Przedmioty</h3>
+      <div id="subs"></div>
+      <button class="pri" id="addSub" style="width:100%">+ Dodaj przedmiot</button>
+      <div class="ft">
+        <button id="exp">Eksport kopii</button><button id="imp">Import kopii</button>
+        <input type="file" id="file" accept=".json" hidden>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="ov" id="ov"><div class="md" id="md"></div></div>
+
+<script>
+const COLORS=['#4f46e5','#e11d74','#0ea5a4','#f59e0b','#16a34a','#9333ea','#ef4444','#0284c7'];
+const KEY='frekwencja_v1';
+let db={subjects:[],classes:[]};
+try{const r=localStorage.getItem(KEY);if(r)db=JSON.parse(r)}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){alert('Nie udało się zapisać danych w przeglądarce.')}}
+const $=s=>document.querySelector(s);
+const uid=()=>Math.random().toString(36).slice(2,10);
+const pad=n=>String(n).padStart(2,'0');
+const addMin=(t,m)=>{const[h,mi]=t.split(':').map(Number);const x=(h*60+mi+m)%1440;return pad(Math.floor(x/60))+':'+pad(x%60)};
+const rng=c=>c.time+(c.end?'–'+c.end:'');
+const ds=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const sub=id=>db.subjects.find(s=>s.id===id);
+const ICON={p:'',y:'✓ ',n:'✗ ',c:'⊘ '};
+let cur=new Date();cur.setDate(1);
+
+function render(){
+  $('#ttl').textContent=cur.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
+  const cal=$('#cal');cal.innerHTML='';
+  ['Pn','Wt','Śr','Cz','Pt','So','Nd'].forEach(d=>cal.insertAdjacentHTML('beforeend',`<div class="dh">${d}</div>`));
+  const first=new Date(cur.getFullYear(),cur.getMonth(),1);
+  const start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
+  const todayS=ds(new Date());
+  for(let i=0;i<42;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);
+    if(i>=35&&d.getMonth()!==cur.getMonth())break;
+    const k=ds(d),el=document.createElement('div');
+    el.className='day'+(d.getMonth()!==cur.getMonth()?' o':'')+(k===todayS?' t':'');
+    el.innerHTML=`<div class="n">${d.getDate()}</div>`;
+    db.classes.filter(c=>c.date===k).sort((a,b)=>a.time.localeCompare(b.time)).forEach(c=>{
+      const s=sub(c.sid);if(!s)return;
+      const ch=document.createElement('div');
+      ch.className='ch '+c.status;ch.style.borderColor=s.color;
+      ch.textContent=ICON[c.status]+rng(c)+' '+s.name;
+      ch.onclick=e=>{e.stopPropagation();statusModal(c.id)};
+      el.appendChild(ch);
+    });
+    el.onclick=()=>addModal(k);
+    cal.appendChild(el);
+  }
+  renderSubs();
+}
+
+function renderSubs(){
+  const box=$('#subs');box.innerHTML='';
+  if(!db.subjects.length)box.innerHTML='<div class="mu" style="margin-bottom:10px">Dodaj pierwszy przedmiot, aby zacząć.</div>';
+  db.subjects.forEach(s=>{
+    const cs=db.classes.filter(c=>c.sid===s.id);
+    const y=cs.filter(c=>c.status==='y').length,n=cs.filter(c=>c.status==='n').length;
+    const cn=cs.filter(c=>c.status==='c').length,pl=cs.filter(c=>c.status==='p').length;
+    const pct=y+n?Math.round(y/(y+n)*100):null;
+    const col=pct===null?'var(--mu)':pct>=80?'var(--ok)':pct>=50?'#d99a00':'var(--no)';
+    const e=document.createElement('div');e.className='sub';e.style.borderColor=s.color;
+    e.innerHTML=`<div class="r"><b>${esc(s.name)}</b><span><span class="pct" style="color:${col}">${pct===null?'–':pct+'%'}</span><button class="x" title="Usuń">🗑</button></span></div>
+    <div class="pb"><i style="width:${pct||0}%;background:${col}"></i></div>
+    <div class="mu">były: ${y} · nieobecne: ${n} · odwołane: ${cn} · zaplanowane: ${pl}</div>`;
+    e.querySelector('.x').onclick=()=>{if(confirm(`Usunąć „${s.name}" razem ze wszystkimi zajęciami?`)){db.subjects=db.subjects.filter(x=>x.id!==s.id);db.classes=db.classes.filter(c=>c.sid!==s.id);save();render()}};
+    box.appendChild(e);
+  });
+}
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function open_(h){$('#md').innerHTML=h;$('#ov').classList.add('s')}
+function close_(){$('#ov').classList.remove('s')}
+$('#ov').onclick=e=>{if(e.target.id==='ov')close_()};
+
+function addModal(date){
+  if(!db.subjects.length){alert('Najpierw dodaj przedmiot po prawej stronie.');return}
+  const opts=db.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  const quick=['08:00','09:45','10:30','12:15','14:00','15:45','17:30'].map(t=>`<button type="button" data-t="${t}">${t}</button>`).join('');
+  open_(`<h3>Nowe zajęcia</h3>
+  <label>Przedmiot</label><select id="aS">${opts}</select>
+  <label>Data</label><input type="date" id="aD" value="${date}">
+  <div class="row"><div style="flex:1"><label>Początek</label><input type="time" id="aT" value="10:30"></div><div style="flex:1"><label>Koniec</label><input type="time" id="aE" value="12:00"></div></div>
+  <div class="row q" style="margin-top:6px">${quick}</div>
+  <label>Powtarzaj co tydzień (liczba dodatkowych tygodni, 0 = jednorazowo)</label>
+  <input type="number" id="aR" min="0" max="52" value="0">
+  <div class="row" style="margin-top:14px"><button id="aC">Anuluj</button><button class="pri" id="aOK">Zapisz</button></div>`);
+  let endTouched=false;
+  $('#aE').oninput=()=>endTouched=true;
+  const sync=()=>{if(!endTouched&&$('#aT').value)$('#aE').value=addMin($('#aT').value,90)};
+  $('#aT').oninput=sync;
+  document.querySelectorAll('.q button').forEach(b=>b.onclick=()=>{$('#aT').value=b.dataset.t;sync()});
+  $('#aC').onclick=close_;
+  $('#aOK').onclick=()=>{
+    const sid=$('#aS').value,d=$('#aD').value,t=$('#aT').value,en=$('#aE').value,r=Math.max(0,Math.min(52,+$('#aR').value||0));
+    if(!d||!t)return;
+    const base=new Date(d+'T00:00:00');
+    for(let i=0;i<=r;i++){const x=new Date(base);x.setDate(base.getDate()+7*i);db.classes.push({id:uid(),sid,date:ds(x),time:t,end:en,status:'p'})}
+    save();close_();render();
+  };
+}
+
+function statusModal(id){
+  const c=db.classes.find(x=>x.id===id),s=sub(c.sid);
+  const o=[['y','✓ Byłam na zajęciach','var(--ok)'],['n','✗ Nie byłam na zajęciach','var(--no)'],['c','⊘ Zajęcia odwołane','var(--ca)']];
+  open_(`<h3>${esc(s.name)}</h3><div class="mu" style="margin:-6px 0 12px">${c.date} · ${rng(c)}</div>
+  <div class="row st">${o.map(([k,l,col])=>`<button data-k="${k}" class="${c.status===k?'on':''}" style="${c.status===k?'border-color:'+col:''}">${l}</button>`).join('')}</div>
+  <div class="row" style="margin-top:12px"><button id="sP">Cofnij do „zaplanowane"</button><button id="sD" style="color:var(--no)">Usuń</button><button id="sC">Zamknij</button></div>`);
+  document.querySelectorAll('.st button').forEach(b=>b.onclick=()=>{c.status=b.dataset.k;save();close_();render()});
+  $('#sP').onclick=()=>{c.status='p';save();close_();render()};
+  $('#sD').onclick=()=>{db.classes=db.classes.filter(x=>x.id!==id);save();close_();render()};
+  $('#sC').onclick=close_;
+}
+
+$('#addSub').onclick=()=>{
+  open_(`<h3>Nowy przedmiot</h3><label>Nazwa</label><input id="nN" placeholder="np. Matematyka" autofocus>
+  <label>Kolor</label><div class="row" id="cols">${COLORS.map((c,i)=>`<button type="button" data-c="${c}" style="background:${c};border:3px solid ${i?'transparent':'var(--tx)'};height:32px"></button>`).join('')}</div>
+  <div class="row" style="margin-top:14px"><button id="nC">Anuluj</button><button class="pri" id="nOK">Dodaj</button></div>`);
+  let col=COLORS[db.subjects.length%COLORS.length];
+  const paint=()=>document.querySelectorAll('#cols button').forEach(b=>b.style.borderColor=b.dataset.c===col?'var(--tx)':'transparent');
+  paint();
+  document.querySelectorAll('#cols button').forEach(b=>b.onclick=()=>{col=b.dataset.c;paint()});
+  $('#nC').onclick=close_;
+  const ok=()=>{const n=$('#nN').value.trim();if(!n)return;db.subjects.push({id:uid(),name:n,color:col});save();close_();render()};
+  $('#nOK').onclick=ok;$('#nN').onkeydown=e=>{if(e.key==='Enter')ok()};
+};
+
+$('#prev').onclick=()=>{cur.setMonth(cur.getMonth()-1);render()};
+$('#next').onclick=()=>{cur.setMonth(cur.getMonth()+1);render()};
+$('#today').onclick=()=>{cur=new Date();cur.setDate(1);render()};
+
+$('#exp').onclick=async()=>{
+  const json=JSON.stringify(db,null,1);
+  let dl=null;try{dl=await claude.use('downloads')}catch(e){}
+  if(dl){try{await dl.save({filename:'frekwencja-kopia.json',data:json});return}catch(e){if(e&&e.code==='declined')return}}
+  open_(`<h3>Kopia zapasowa</h3><div class="mu">Skopiuj tekst i zapisz w pliku .json. Import wczytuje taki plik.</div><textarea id="bk" style="width:100%;height:180px;margin-top:8px;font:12px monospace"></textarea><div class="row" style="margin-top:10px"><button id="bkC">Zamknij</button></div>`);
+  $('#bk').value=json;$('#bk').select();$('#bkC').onclick=close_;
+};
+$('#imp').onclick=()=>$('#file').click();
+$('#file').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.subjects)||!Array.isArray(d.classes))throw 0;
+    if(confirm('Zastąpić obecne dane kopią z pliku?')){db=d;save();render()}}catch(x){alert('Nieprawidłowy plik kopii.')}};
+  r.readAsText(f);e.target.value='';
+};
+render();
+</script>
+</body>
+</html>
