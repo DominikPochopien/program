@@ -29,4 +29,16 @@ export const classesApi = {
   addMany: (rows) => client.from('classes').insert(rows).select().then(unwrap).then((r) => r.map(normalizeClass)),
   setStatus: (id, status) => client.from('classes').update({ status }).eq('id', id).then(unwrap),
   remove: (id) => client.from('classes').delete().eq('id', id).then(unwrap),
+  
+};
+export const profileApi = {
+  getSettings: () => client.from('profiles').select('visible_days').single().then(({ data, error }) => {
+    if (error && error.code !== 'PGRST116') throw error; // Ignoruj błąd jeśli tabeli jeszcze nie ma
+    return data?.visible_days;
+  }),
+  updateSettings: async (visible_days) => {
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return;
+    return client.from('profiles').upsert({ id: user.id, visible_days }).then(unwrap);
+  }
 };
