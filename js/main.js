@@ -66,7 +66,11 @@ function bindControls() {
       defaultColor: SUBJECT_COLORS[store.getState().subjects.length % SUBJECT_COLORS.length],
       onSave: (name, color) => safely(() => store.addSubject(name, color)),
     });
-  $('#sign-out').onclick = async () => { await authApi.signOut(); showAuth(); };
+  $('#sign-out').onclick = async () => { 
+  await authApi.signOut(); 
+  if (window.resetAuthForm) window.resetAuthForm(); // Przywraca widok logowania
+  showAuth(); 
+};
 
   const fileInput = $('#legacy-file');
   $('#import-legacy').onclick = () => fileInput.click();
