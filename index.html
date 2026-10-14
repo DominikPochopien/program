@@ -12,11 +12,24 @@
     <form id="auth-form">
       <label class="field">E-mail<input type="email" id="auth-email" required autocomplete="email"></label>
       <label class="field">Hasło<input type="password" id="auth-password" required minlength="6" autocomplete="current-password"></label>
-      <p id="auth-message" class="auth__message"></p>
-      <div class="row">
-        <button type="submit" class="btn btn--primary">Zaloguj</button>
-        <button type="button" id="auth-signup" class="btn">Załóż konto</button>
+            <div id="auth-requirements" class="password-reqs" hidden>
+        <div class="req-title">Hasło powinno zawierać minimum:</div>
+        <ul class="req-list">
+          <li id="req-length" class="req-item req-item--invalid">✓ 8 znaków</li>
+          <li id="req-lower" class="req-item req-item--invalid">✓ 1 małą literę</li>
+          <li id="req-upper" class="req-item req-item--invalid">✓ 1 dużą literę</li>
+          <li id="req-number" class="req-item req-item--invalid">✓ 1 cyfrę lub znak specjalny</li>
+        </ul>
       </div>
+
+      <p id="auth-message" class="auth__message"></p>
+      
+      <div id="auth-buttons" class="row">
+        <button type="submit" class="btn btn--primary" id="btn-login">Zaloguj</button>
+        <button type="button" id="btn-show-signup" class="btn">Załóż konto</button>
+      </div>
+      <!-- NOWY FRAGMENT: Przycisk rejestracji (domyślnie ukryty) -->
+      <button type="button" id="auth-signup" class="btn btn--warn btn--block" hidden disabled>Załóż konto</button>
     </form>
   </section>
 
