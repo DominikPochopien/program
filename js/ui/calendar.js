@@ -1,4 +1,4 @@
-import { STATUS_ICON, WEEKDAYS } from '../constants.js';
+import { WEEKDAYS } from '../constants.js';
 import { addDays, formatRange, toDateKey } from '../utils.js';
 
 function visibleDays(month) {
@@ -17,11 +17,10 @@ function createElement(tag, className, text) {
 }
 
 function createChip(cls, subject, onClick) {
-  // Tworzymy element bez tekstu
   const chip = createElement('div', `chip chip--${cls.status}`);
   
-  // Używamy innerHTML, aby CSS mógł ukryć godzinę na telefonie (span class="chip-time")
-  chip.innerHTML = `${STATUS_ICON[cls.status]}<span class="chip-time">${formatRange(cls)}</span> ${subject.name}`;
+  // Usunięto stały przedrostek STATUS_ICON. Zostaje sama nazwa przedmiotu.
+  chip.innerHTML = `<span class="chip-time">${formatRange(cls)}</span> ${subject.name}`;
   
   chip.style.setProperty('--color', subject.color);
   chip.addEventListener('click', (e) => {
