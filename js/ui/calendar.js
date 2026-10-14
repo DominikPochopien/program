@@ -17,12 +17,18 @@ function createElement(tag, className, text) {
 }
 
 function createChip(cls, subject, onClick) {
-  const chip = createElement('div', `chip chip--${cls.status}`, `${STATUS_ICON[cls.status]}${formatRange(cls)} ${subject.name}`);
+  // Tworzymy element bez tekstu
+  const chip = createElement('div', `chip chip--${cls.status}`);
+  
+  // Używamy innerHTML, aby CSS mógł ukryć godzinę na telefonie (span class="chip-time")
+  chip.innerHTML = `${STATUS_ICON[cls.status]}<span class="chip-time">${formatRange(cls)}</span> ${subject.name}`;
+  
   chip.style.setProperty('--color', subject.color);
   chip.addEventListener('click', (e) => {
     e.stopPropagation();
     onClick(cls.id);
   });
+  
   return chip;
 }
 
