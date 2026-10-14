@@ -134,3 +134,44 @@ h3 { font-size: 15px; margin-bottom: 10px; }
 .btn--warn { background: #ea580c; border-color: #ea580c; color: white; margin-top: 10px; }
 .btn--warn:hover { background: #c2410c; }
 .btn--warn:disabled { background: var(--border); border-color: var(--border); color: var(--muted); cursor: not-allowed; }
+
+/* --- Okienko Ustawień --- */
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  row-gap: 12px;
+  column-gap: 24px;
+}
+.checkbox-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+}
+/* Stylizacja własnego prostego checkboxa */
+.checkbox-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--muted);
+  border-radius: 3px;
+  background: var(--bg);
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.checkbox-row input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.checkbox-row input[type="checkbox"]:checked::after {
+  content: "✓";
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+}
