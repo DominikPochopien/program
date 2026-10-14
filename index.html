@@ -28,7 +28,6 @@
         <button type="submit" class="btn btn--primary" id="btn-login">Zaloguj</button>
         <button type="button" id="btn-show-signup" class="btn">Załóż konto</button>
       </div>
-      <!-- NOWY FRAGMENT: Przycisk rejestracji (domyślnie ukryty) -->
       <button type="button" id="auth-signup" class="btn btn--warn btn--block" hidden disabled>Załóż konto</button>
     </form>
   </section>
@@ -48,13 +47,11 @@
       <h3>Przedmioty</h3>
       <div id="subjects"></div>
       <button id="add-subject" class="btn btn--primary btn--block">+ Dodaj przedmiot</button>
+      
       <div class="footer-actions">
-        <button id="import-legacy" class="btn btn--small btn--ghost">Importuj starą kopię</button>
         <button id="sign-out" class="btn btn--small btn--ghost">Wyloguj</button>
-        <input type="file" id="legacy-file" accept=".json" hidden>
       </div>
     </aside>
-  </main>
 
   <div id="overlay" class="overlay"><div id="modal" class="modal"></div></div>
 
