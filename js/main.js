@@ -60,6 +60,7 @@ function bindControls() {
   $('#prev-month').onclick = () => store.shiftMonth(-1);
   $('#next-month').onclick = () => store.shiftMonth(1);
   $('#today').onclick = store.goToToday;
+  
   $('#add-subject').onclick = () =>
     openSubjectDialog({
       defaultColor: SUBJECT_COLORS[store.getState().subjects.length % SUBJECT_COLORS.length],
@@ -68,8 +69,40 @@ function bindControls() {
     
   $('#sign-out').onclick = async () => { 
     await authApi.signOut(); 
-    if (window.resetAuthForm) window.resetAuthForm(); // Powrót do logowania (z naszej poprzedniej poprawki)
+    if (window.resetAuthForm) window.resetAuthForm(); // Powrót do logowania
     showAuth(); 
+  };
+
+  // --- Obsługa okienka ustawień (zębatki) ---
+  const settingsModal = $('#settings-modal');
+  const mainModal = $('#modal');
+  const overlay = $('#overlay');
+  
+  $('#btn-settings').onclick = () => {
+    // Ukrywamy ewentualne okienka z zajęciami i pokazujemy ustawienia
+    mainModal.hidden = true;
+    settingsModal.hidden = false;
+    overlay.classList.add('open');
+    
+    // Zaznacz checkboxy na podstawie aktualnego stanu aplikacji
+    const currentDays = store.getState().visibleDays;
+    document.querySelectorAll('#settings-days input').forEach(input => {
+      input.checked = currentDays.includes(Number(input.value));
+    });
+  };
+
+  $('#btn-save-settings').onclick = () => {
+    // Zbieramy wartości wszystkich zaznaczonych checkboxów
+    const selected = Array.from(document.querySelectorAll('#settings-days input:checked'))
+      .map(input => Number(input.value));
+      
+    if (selected.length === 0) return alert('Wybierz chociaż jeden dzień do wyświetlenia!');
+    
+    // Zapisujemy nowy stan kalendarza i zamykamy okienko
+    store.setVisibleDays(selected);
+    overlay.classList.remove('open');
+    settingsModal.hidden = true;
+    mainModal.hidden = false; // Przywracamy domyślny kontener okienek
   };
 }
 
