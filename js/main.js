@@ -1,6 +1,5 @@
 import { authApi } from './api.js';
 import { SUBJECT_COLORS } from './constants.js';
-import { importLegacyBackup } from './legacyImport.js';
 import * as store from './store.js';
 import { bindAuthForm } from './ui/auth.js';
 import { openAddClassDialog, openStatusDialog, openSubjectDialog } from './ui/dialogs.js';
@@ -66,21 +65,12 @@ function bindControls() {
       defaultColor: SUBJECT_COLORS[store.getState().subjects.length % SUBJECT_COLORS.length],
       onSave: (name, color) => safely(() => store.addSubject(name, color)),
     });
+    
   $('#sign-out').onclick = async () => { 
-  await authApi.signOut(); 
-  if (window.resetAuthForm) window.resetAuthForm(); // Przywraca widok logowania
-  showAuth(); 
-};
-
-  const fileInput = $('#legacy-file');
-  $('#import-legacy').onclick = () => fileInput.click();
-  fileInput.onchange = () =>
-    safely(async () => {
-      if (!fileInput.files[0]) return;
-      await importLegacyBackup(fileInput.files[0]);
-      fileInput.value = '';
-      await store.load();
-    });
+    await authApi.signOut(); 
+    if (window.resetAuthForm) window.resetAuthForm(); // Powrót do logowania (z naszej poprzedniej poprawki)
+    showAuth(); 
+  };
 }
 
 async function init() {
