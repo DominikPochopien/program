@@ -65,6 +65,14 @@ function bindControls() {
     openSubjectDialog({
       defaultColor: SUBJECT_COLORS[store.getState().subjects.length % SUBJECT_COLORS.length],
       onSave: (name, color) => safely(() => store.addSubject(name, color)),
+      const applyAllCheckbox = $('#apply-to-all-months');
+    const applyIndicator = $('#apply-indicator');
+    if (applyAllCheckbox) {
+      applyAllCheckbox.onchange = (e) => {
+        applyIndicator.textContent = e.target.checked ? '(Tak ✓)' : '(Tylko tutaj)';
+        e.target.parentElement.style.background = e.target.checked ? 'color-mix(in srgb, #0ea5e9 10%, transparent)' : 'transparent';
+    };
+  }
     });
     
   $('#sign-out').onclick = async () => { 
