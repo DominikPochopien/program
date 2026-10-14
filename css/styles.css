@@ -75,19 +75,11 @@ h3 { font-size: 15px; margin-bottom: 10px; }
   color: #fff;
   border-radius: 6px;
   font-size: 11px;
-  padding: 4px 6px 4px 14px; /* Miejsce z lewej na stały kolor przedmiotu */
+  padding: 4px 8px;
   margin-bottom: 4px;
   text-align: center;
   overflow: hidden;
   font-weight: 500;
-}
-/* Stały pasek z kolorem przedmiotu po lewej stronie każdego kafelka */
-.chip::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; bottom: 0;
-  width: 8px;
-  background-color: var(--color);
 }
 /* Nadpisywanie kolorów na podstawie statusu - kolor przedmiotu po lewej zostaje! */
 .chip--present { background-color: var(--ok); }
