@@ -118,3 +118,59 @@ h3 { font-size: 15px; margin-bottom: 10px; }
 .btn--warn { background: #ea580c; border-color: #ea580c; color: white; margin-top: 10px; }
 .btn--warn:hover { background: #c2410c; }
 .btn--warn:disabled { background: var(--border); border-color: var(--border); color: var(--muted); cursor: not-allowed; }
+
+/* Wygląd mobilny a'la Google Calendar */
+@media (max-width: 820px) {
+  .app { grid-template-columns: 1fr; padding: 12px; }
+  
+  /* Ukrywamy godzinę w kafelkach na telefonie */
+  .chip-time { display: none; }
+
+  /* Siatka bez pionowych przerw */
+  .calendar { gap: 0; }
+  .weekday { 
+    padding-bottom: 8px; 
+    border-bottom: 1px solid var(--border); 
+  }
+  
+  /* Dni jako poziome pasy */
+  .day { 
+    min-height: 80px; 
+    border: none; /* Usuwamy ramki pudełkowe */
+    border-bottom: 1px solid var(--border); /* Zostawiamy tylko poziomą linię separatora */
+    border-radius: 0; 
+    padding: 4px 2px; 
+  }
+  
+  /* Dzisiejszy dzień - zamiast ramki dajemy delikatne tło */
+  .day--today { 
+    outline: none;
+    background: color-mix(in srgb, var(--accent) 10%, transparent); 
+  }
+  
+  /* Wyśrodkowane numery dni na górze */
+  .day__number { 
+    text-align: center; 
+    margin-bottom: 4px; 
+    font-weight: 500;
+  }
+  
+  /* Kafelki wydarzeń (solidne bloki koloru) */
+  .chip { 
+    background: var(--color) !important; /* Wymuszamy pełny kolor tła */
+    color: #ffffff !important; /* Biały tekst */
+    border-left: none; /* Usuwamy lewy pasek */
+    border-radius: 4px;
+    font-size: 10px; 
+    padding: 3px 4px;
+    text-align: center; /* Środkujemy tekst */
+    margin-bottom: 2px;
+  }
+  
+  /* Odwołane zajęcia - przezroczyste z obramowaniem */
+  .chip--cancelled { 
+    background: transparent !important; 
+    color: var(--neutral) !important; 
+    border: 1px solid var(--neutral); 
+  }
+}
