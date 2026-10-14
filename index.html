@@ -33,12 +33,14 @@
   </section>
 
   <main id="app" class="app" hidden>
-    <section class="card">
+    <section class="card calendar-section">
       <div class="toolbar">
         <button id="prev-month" class="btn" aria-label="Poprzedni miesiąc">‹</button>
         <h2 id="month-title" class="toolbar__title"></h2>
         <button id="today" class="btn">Dziś</button>
         <button id="next-month" class="btn" aria-label="Następny miesiąc">›</button>
+        <!-- NOWE: Przycisk ustawień (zębatka) -->
+        <button id="btn-settings" class="btn btn--ghost" aria-label="Ustawienia" style="font-size: 18px; padding: 4px 8px;">⚙️</button>
       </div>
       <div id="calendar" class="calendar"></div>
     </section>
@@ -47,11 +49,35 @@
       <h3>Przedmioty</h3>
       <div id="subjects"></div>
       <button id="add-subject" class="btn btn--primary btn--block">+ Dodaj przedmiot</button>
-      
       <div class="footer-actions">
         <button id="sign-out" class="btn btn--small btn--ghost">Wyloguj</button>
       </div>
     </aside>
+  </main>
+
+  <!-- Okienka dialogowe (dodane okienko ustawień) -->
+  <div id="overlay" class="overlay">
+    <div id="modal" class="modal"></div>
+    
+    <!-- NOWE: Ukryte okienko ustawień -->
+    <div id="settings-modal" class="modal" hidden>
+      <h3>Ustawienia</h3>
+      <div class="field">
+        <label><b>Wyświetlanie kalendarza</b></label>
+        <p style="font-size: 12px; color: var(--muted); margin: 4px 0 10px;">Zaznacz dni tygodnia, które mają być widoczne:</p>
+        <div id="settings-days" style="display: flex; flex-direction: column; gap: 8px;">
+          <label><input type="checkbox" value="1" checked> Poniedziałek</label>
+          <label><input type="checkbox" value="2" checked> Wtorek</label>
+          <label><input type="checkbox" value="3" checked> Środa</label>
+          <label><input type="checkbox" value="4" checked> Czwartek</label>
+          <label><input type="checkbox" value="5" checked> Piątek</label>
+          <label><input type="checkbox" value="6" checked> Sobota</label>
+          <label><input type="checkbox" value="0" checked> Niedziela</label>
+        </div>
+      </div>
+      <button id="btn-save-settings" class="btn btn--primary btn--block" style="margin-top: 16px;">Zapisz</button>
+    </div>
+  </div>
 
   <div id="overlay" class="overlay"><div id="modal" class="modal"></div></div>
 
