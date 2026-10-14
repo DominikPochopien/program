@@ -1,34 +1,40 @@
 import { GOOD_ATTENDANCE, MIN_ATTENDANCE } from '../constants.js';
 import { attendanceStats } from '../store.js';
-import { escapeHtml } from '../utils.js';
 
-function toneClass(percent) {
-  if (percent === null) return '';
-  if (percent >= GOOD_ATTENDANCE) return 'is-good';
-  return percent >= MIN_ATTENDANCE ? 'is-mid' : 'is-bad';
-}
+export function renderSubjects(container, state, handlers) {
+  if (!state.subjects.length) {
+    container.innerHTML = '<p class="empty">Brak przedmiotów. Dodaj swój pierwszy przedmiot poniżej.</p>';
+    return;
+  }
 
-function subjectCard(subject) {
-  const s = attendanceStats(subject.id);
-  return `
-    <div class="subject ${toneClass(s.percent)}" style="--color:${subject.color}">
+  container.innerHTML = '';
+  state.subjects.forEach((subject) => {
+    const stats = attendanceStats(subject.id);
+    const hasData = stats.percent !== null;
+    let toneClass = '';
+    if (hasData) {
+      if (stats.percent >= GOOD_ATTENDANCE) toneClass = 'is-good';
+      else if (stats.percent >= MIN_ATTENDANCE) toneClass = 'is-mid';
+      else toneClass = 'is-bad';
+    }
+
+    const card = document.createElement('div');
+    card.className = `subject ${toneClass}`;
+    card.style.setProperty('--color', subject.color);
+    
+    // Zmieniono widok: usunięto <div class="subject__meta">, pozostawiając tylko czysty i zgrabny panel
+    card.innerHTML = `
       <div class="subject__head">
-        <b>${escapeHtml(subject.name)}</b>
-        <span>
-          <span class="subject__percent">${s.percent === null ? '–' : `${s.percent}%`}</span>
-          <button class="subject__remove" data-remove="${subject.id}" title="Usuń">🗑</button>
-        </span>
+        <strong>${subject.name}</strong>
+        <div>
+          <span class="subject__percent">${hasData ? stats.percent + '%' : '–'}</span>
+          <button class="subject__remove" aria-label="Usuń">🗑</button>
+        </div>
       </div>
-      <div class="progress"><div class="progress__bar" style="width:${s.percent ?? 0}%"></div></div>
-      <div class="subject__meta">były: ${s.present} · nieobecne: ${s.absent} · odwołane: ${s.cancelled} · zaplanowane: ${s.planned}</div>
-    </div>`;
-}
+      <div class="progress"><div class="progress__bar" style="width: ${hasData ? stats.percent : 0}%"></div></div>
+    `;
 
-export function renderSubjects(root, { subjects }, { onRemove }) {
-  root.innerHTML = subjects.length
-    ? subjects.map(subjectCard).join('')
-    : '<div class="empty">Dodaj pierwszy przedmiot, aby zacząć.</div>';
-  root.querySelectorAll('[data-remove]').forEach((btn) =>
-    btn.addEventListener('click', () => onRemove(btn.dataset.remove)),
-  );
+    card.querySelector('.subject__remove').onclick = () => handlers.onRemove(subject.id);
+    container.appendChild(card);
+  });
 }
