@@ -77,3 +77,16 @@ h3 { font-size: 15px; margin-bottom: 10px; }
 /* Auth */
 .auth { max-width: 360px; margin: 12vh auto 0; }
 .auth__message { min-height: 1.2em; margin: 10px 0 0; font-size: 13px; color: var(--danger); }
+/* Auth Requirements UI */
+.password-reqs { margin-top: 12px; padding: 12px; background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
+.req-title { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.req-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.req-item { font-size: 13px; font-weight: 500; transition: color 0.2s; }
+.req-item--invalid { color: var(--muted); opacity: 0.7; }
+.req-item--valid { color: var(--ok); }
+.req-item--invalid::first-letter { color: transparent; 
+
+
+.btn--warn { background: #ea580c; border-color: #ea580c; color: white; margin-top: 10px; }
+.btn--warn:hover { background: #c2410c; }
+.btn--warn:disabled { background: var(--border); border-color: var(--border); color: var(--muted); cursor: not-allowed; }
