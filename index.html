@@ -12,7 +12,8 @@
     <form id="auth-form">
       <label class="field">E-mail<input type="email" id="auth-email" required autocomplete="email"></label>
       <label class="field">Hasło<input type="password" id="auth-password" required minlength="6" autocomplete="current-password"></label>
-            <div id="auth-requirements" class="password-reqs" hidden>
+      
+      <div id="auth-requirements" class="password-reqs" hidden>
         <div class="req-title">Hasło powinno zawierać minimum:</div>
         <ul class="req-list">
           <li id="req-length" class="req-item req-item--invalid">✓ 8 znaków</li>
@@ -39,7 +40,7 @@
         <h2 id="month-title" class="toolbar__title"></h2>
         <button id="today" class="btn">Dziś</button>
         <button id="next-month" class="btn" aria-label="Następny miesiąc">›</button>
-        <!-- NOWE: Przycisk ustawień (zębatka) -->
+        <!-- Przycisk ustawień (zębatka) -->
         <button id="btn-settings" class="btn btn--ghost" aria-label="Ustawienia" style="font-size: 18px; padding: 4px 8px;">⚙️</button>
       </div>
       <div id="calendar" class="calendar"></div>
@@ -55,17 +56,19 @@
     </aside>
   </main>
 
-  <!-- Okienka dialogowe (dodane okienko ustawień) -->
+  <!-- Okienka dialogowe (szare tło) -->
   <div id="overlay" class="overlay">
+    
+    <!-- Główne okienko (np. dodawanie przedmiotu, status zajęć) -->
     <div id="modal" class="modal"></div>
     
-    <!-- NOWE: Ukryte okienko ustawień -->
+    <!-- Okienko ustawień (zębatka) -->
     <div id="settings-modal" class="modal" hidden>
       <h3 style="margin-bottom: 4px;">Ustawienia</h3>
       <p style="font-size: 12px; font-weight: 600; margin: 0 0 4px;">Wyświetlanie kalendarza</p>
       <p style="font-size: 11px; color: var(--muted); margin: 0 0 16px;">Zaznacz dni tygodnia, które mają być widoczne:</p>
       
-      <!-- Siatka dwukolumnowa -->
+      <!-- Siatka dwukolumnowa na dni -->
       <div id="settings-days" class="settings-grid">
         <label class="checkbox-row">Poniedziałek <input type="checkbox" value="1"></label>
         <label class="checkbox-row">Piątek <input type="checkbox" value="5"></label>
@@ -76,12 +79,18 @@
         <label class="checkbox-row">Czwartek <input type="checkbox" value="4"></label>
       </div>
 
+      <!-- Przycisk "zastosuj we wszystkich miesiącach" -->
+      <label style="display: block; margin-top: 16px; padding: 12px; border: 2px solid #0ea5e9; border-radius: 8px; text-align: center; cursor: pointer; color: #0ea5e9; font-weight: 500; font-size: 12px; transition: background 0.2s;">
+        <input type="checkbox" id="apply-to-all-months" checked style="display: none;">
+        Czy zastosować to ustawienie we wszystkich miesiącach? <span id="apply-indicator" style="font-weight: bold;">(Tak ✓)</span>
+      </label>
+
       <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
         <button id="btn-save-settings" class="btn btn--primary btn--block">Zapisz</button>
       </div>
     </div>
 
-  <div id="overlay" class="overlay"><div id="modal" class="modal"></div></div>
+  </div>
 
   <script type="module" src="js/main.js"></script>
 </body>
