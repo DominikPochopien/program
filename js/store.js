@@ -1,10 +1,10 @@
-import { subjectsApi, classesApi } from './api.js';
+import { subjectsApi, classesApi, profileApi } from './api.js';
 import { STATUS } from './constants.js';
 import { addDays, fromDateKey, toDateKey } from './utils.js';
 
 const startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1);
 
-// NOWE: domyślnie pokazujemy cały tydzień [0,1,2,3,4,5,6] (0 to niedziela, 1 poniedziałek)
+// Stan aplikacji - domyślnie pokazujemy wszystkie dni tygodnia (0 to niedziela)
 const state = { 
   subjects: [], 
   classes: [], 
@@ -17,22 +17,24 @@ export const getState = () => state;
 export const subscribe = (fn) => listeners.add(fn);
 const notify = () => listeners.forEach((fn) => fn(state));
 
-// Funkcje pobierania
 export async function load() {
-  [state.subjects, state.classes] = await Promise.all([subjectsApi.list(), classesApi.list()]);
+  const [loadedSubjects, loadedClasses, savedDays] = await Promise.all([
+    subjectsApi.list(), 
+    classesApi.list(),
+    profileApi.getSettings() // Pobieranie ustawień użytkownika z bazy
+  ]);
   
-  // Próbujemy załadować zapisane ustawienia dni z pamięci lokalnej (żeby pamiętał po odświeżeniu)
-  const savedDays = localStorage.getItem('calendar_visible_days');
-  if (savedDays) state.visibleDays = JSON.parse(savedDays);
+  state.subjects = loadedSubjects;
+  state.classes = loadedClasses;
+  if (savedDays) state.visibleDays = savedDays;
   
   notify();
 }
 
-// NOWE: Funkcja zmieniająca widoczne dni tygodnia
-export function setVisibleDays(daysArray) {
+export async function setVisibleDays(daysArray) {
   state.visibleDays = daysArray;
-  localStorage.setItem('calendar_visible_days', JSON.stringify(daysArray));
-  notify();
+  notify(); // Natychmiastowe odświeżenie interfejsu (kalendarza)
+  await profileApi.updateSettings(daysArray); // Zapis ustawień w tle do Supabase
 }
 
 export function shiftMonth(delta) {
