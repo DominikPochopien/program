@@ -2,7 +2,7 @@ import { authApi } from './api.js';
 import { SUBJECT_COLORS } from './constants.js';
 import * as store from './store.js';
 import { bindAuthForm } from './ui/auth.js';
-import { openAddClassDialog, openStatusDialog, openSubjectDialog } from './ui/dialogs.js';
+import { openAddClassDialog, openDayDialog, openSubjectDialog, refreshOpenDialog } from './ui/dialogs.js';
 import { renderCalendar } from './ui/calendar.js';
 import { renderSubjects } from './ui/subjects.js';
 import { $, mobileQuery } from './utils.js';
@@ -18,22 +18,42 @@ async function safely(action) {
   }
 }
 
+// Panel dnia: lista zajęć z możliwością zaznaczenia frekwencji
+function openDay(date) {
+  openDayDialog({
+    date,
+    getItems: () => {
+      const { subjects } = store.getState();
+      return store
+        .classesOfDay(date)
+        .map((cls) => ({ cls, subject: subjects.find((s) => s.id === cls.subject_id) }))
+        .filter((item) => item.subject);
+    },
+    onStatus: (id, status) => safely(() => store.setClassStatus(id, status)),
+    onDelete: (id) => {
+      if (confirm('Usunąć te zajęcia?')) safely(() => store.removeClass(id));
+    },
+    onAdd: () => openAddClass(date),
+  });
+}
+
+// Dodawanie zajęć z panelu dnia (po zapisie lub anulowaniu wracamy do panelu)
+function openAddClass(date) {
+  const { subjects } = store.getState();
+  if (!subjects.length) return alert('Najpierw dodaj przedmiot po prawej stronie.');
+  openAddClassDialog({
+    date,
+    subjects,
+    onSave: (data) => {
+      safely(() => store.addClassSeries(data));
+      openDay(data.date);
+    },
+    onCancel: () => openDay(date),
+  });
+}
+
 const handlers = {
-  onDayClick(date) {
-    const { subjects } = store.getState();
-    if (!subjects.length) return alert('Najpierw dodaj przedmiot po prawej stronie.');
-    openAddClassDialog({ date, subjects, onSave: (data) => safely(() => store.addClassSeries(data)) });
-  },
-  onClassClick(id) {
-    const { classes, subjects } = store.getState();
-    const cls = classes.find((c) => c.id === id);
-    openStatusDialog({
-      cls,
-      subject: subjects.find((s) => s.id === cls.subject_id),
-      onStatus: (status) => safely(() => store.setClassStatus(id, status)),
-      onDelete: () => safely(() => store.removeClass(id)),
-    });
-  },
+  onDayClick: (date) => openDay(date),
   onRemoveSubject(id) {
     const subject = store.getState().subjects.find((s) => s.id === id);
     if (confirm(`Usunąć „${subject.name}" razem ze wszystkimi zajęciami?`)) {
@@ -45,6 +65,7 @@ const handlers = {
 function render(state) {
   renderCalendar({ titleEl: $('#month-title'), gridEl: $('#calendar') }, state, handlers);
   renderSubjects($('#subjects'), state, { onRemove: handlers.onRemoveSubject });
+  refreshOpenDialog(); // jeśli panel dnia jest otwarty, odśwież jego listę
 }
 
 async function showApp() {

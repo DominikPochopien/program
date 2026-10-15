@@ -32,6 +32,12 @@ export async function setVisibleDays(days, { allMonths }) {
   await profileApi.updateSettings({ visibleDays: state.visibleDays, monthOverrides: state.monthOverrides });
 }
 
+// --- Zajęcia jednego dnia (posortowane po godzinie) ---
+export const classesOfDay = (dateKey) =>
+  state.classes
+    .filter((c) => c.date === dateKey)
+    .sort((a, b) => a.start_time.localeCompare(b.start_time));
+
 // --- Dane ---
 export async function load() {
   const [subjects, classes, settings] = await Promise.all([
@@ -100,10 +106,14 @@ export function attendanceStats(subjectId) {
   const present = count(STATUS.PRESENT);
   const absent = count(STATUS.ABSENT);
   const held = present + absent;
+  // Procent liczą tylko zajęcia z zaznaczoną obecnością lub nieobecnością.
+  // Odwołane, zaplanowane i bez sprawdzania obecności nie wpływają na wynik.
   return {
+    total: mine.length,
     present,
     absent,
     cancelled: count(STATUS.CANCELLED),
+    noCheck: count(STATUS.NO_CHECK),
     planned: count(STATUS.PLANNED),
     percent: held ? Math.round((present / held) * 100) : null,
   };

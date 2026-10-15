@@ -1,6 +1,19 @@
 import { GOOD_ATTENDANCE, MIN_ATTENDANCE } from '../constants.js';
 import { attendanceStats } from '../store.js';
 
+// Podsumowanie pod paskiem: liczba zajęć i ich statusy
+function statsHtml(stats) {
+  return [
+    ['Zajęcia', stats.total],
+    ['Byłam', stats.present],
+    ['Nieobecna', stats.absent],
+    ['Odwołane', stats.cancelled],
+    ['Bez sprawdzania', stats.noCheck],
+  ]
+    .map(([label, value]) => `<span class="subject__stat">${label}: <b>${value}</b></span>`)
+    .join('');
+}
+
 export function renderSubjects(container, state, handlers) {
   if (!state.subjects.length) {
     container.innerHTML = '<p class="empty">Brak przedmiotów. Dodaj swój pierwszy przedmiot poniżej.</p>';
@@ -22,7 +35,7 @@ export function renderSubjects(container, state, handlers) {
     card.className = `subject ${toneClass}`;
     card.style.setProperty('--color', subject.color);
 
-    // Widok skrócony: sam procent i pasek (bez długich opisów).
+    // Procent, pasek i krótkie podsumowanie liczby zajęć.
     // Nazwa wstawiana jest jako zwykły tekst (textContent), a nie HTML.
     card.innerHTML = `
       <div class="subject__head">
@@ -33,6 +46,7 @@ export function renderSubjects(container, state, handlers) {
         </div>
       </div>
       <div class="progress"><div class="progress__bar" style="width: ${hasData ? stats.percent : 0}%"></div></div>
+      <div class="subject__meta">${statsHtml(stats)}</div>
     `;
 
     const nameEl = card.querySelector('strong');

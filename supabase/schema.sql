@@ -18,7 +18,7 @@ create table public.classes (
   start_time time not null,
   end_time   time,
   status     text not null default 'planned'
-             check (status in ('planned', 'present', 'absent', 'cancelled'))
+             check (status in ('planned', 'present', 'absent', 'cancelled', 'no_check'))
 );
 
 create index classes_user_date_idx on public.classes (user_id, date);

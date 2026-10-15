@@ -18,15 +18,12 @@ function createElement(tag, className, text) {
   return el;
 }
 
-function createChip(cls, subject, onClick) {
+// Kafelek nie ma własnej obsługi kliknięcia: kliknięcie "przechodzi" do dnia i otwiera panel dnia.
+function createChip(cls, subject) {
   const label = isMobile() ? truncate(subject.name, MOBILE_NAME_LIMIT) : subject.name;
   const chip = createElement('div', `chip chip--${cls.status}`, label);
   chip.title = `${formatRange(cls)} ${subject.name}`;
   chip.style.setProperty('--color', subject.color);
-  chip.addEventListener('click', (e) => {
-    e.stopPropagation();
-    onClick(cls.id);
-  });
   return chip;
 }
 
@@ -43,7 +40,7 @@ function createDay(date, month, classesOfDay, subjects, handlers) {
     .sort((a, b) => a.start_time.localeCompare(b.start_time))
     .forEach((cls) => {
       const subject = subjects.find((s) => s.id === cls.subject_id);
-      if (subject) day.append(createChip(cls, subject, handlers.onClassClick));
+      if (subject) day.append(createChip(cls, subject));
     });
   day.addEventListener('click', () => handlers.onDayClick(key));
   return day;
