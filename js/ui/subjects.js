@@ -1,16 +1,16 @@
 import { GOOD_ATTENDANCE, MIN_ATTENDANCE } from '../constants.js';
 import { attendanceStats } from '../store.js';
 
-// Podsumowanie pod paskiem: liczba zajęć i ich statusy
+// Podsumowanie pod paskiem: "Wszystkie" w pierwszym rzędzie, niżej dwie kolumny
 function statsHtml(stats) {
   return [
-    ['Zajęcia', stats.total],
-    ['Byłam', stats.present],
-    ['Nieobecna', stats.absent],
-    ['Odwołane', stats.cancelled],
+    ['Wszystkie', stats.total, 'subject__stat--wide'],
+    ['Obecność', stats.present],
     ['Bez sprawdzania', stats.noCheck],
+    ['Nieobecność', stats.absent],
+    ['Odwołane', stats.cancelled],
   ]
-    .map(([label, value]) => `<span class="subject__stat">${label}: <b>${value}</b></span>`)
+    .map(([label, value, extraClass = '']) => `<span class="subject__stat ${extraClass}">${label}: <b>${value}</b></span>`)
     .join('');
 }
 

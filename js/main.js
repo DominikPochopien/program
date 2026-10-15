@@ -5,6 +5,7 @@ import { bindAuthForm } from './ui/auth.js';
 import { openAddClassDialog, openDayDialog, openSubjectDialog, refreshOpenDialog } from './ui/dialogs.js';
 import { renderCalendar } from './ui/calendar.js';
 import { renderSubjects } from './ui/subjects.js';
+import { bindSwipe } from './ui/swipe.js';
 import { $, mobileQuery } from './utils.js';
 
 const authSection = $('#auth');
@@ -83,6 +84,12 @@ function bindControls() {
   $('#prev-month').onclick = () => store.shiftMonth(-1);
   $('#next-month').onclick = () => store.shiftMonth(1);
   $('#today').onclick = store.goToToday;
+
+  // Telefon: przesunięcie palcem w lewo = następny miesiąc, w prawo = poprzedni
+  bindSwipe($('.calendar-section'), {
+    onSwipeLeft: () => store.shiftMonth(1),
+    onSwipeRight: () => store.shiftMonth(-1),
+  });
 
   $('#add-subject').onclick = () =>
     openSubjectDialog({
