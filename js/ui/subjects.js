@@ -21,11 +21,12 @@ export function renderSubjects(container, state, handlers) {
     const card = document.createElement('div');
     card.className = `subject ${toneClass}`;
     card.style.setProperty('--color', subject.color);
-    
-    // Zmieniono widok: usunięto <div class="subject__meta">, pozostawiając tylko czysty i zgrabny panel
+
+    // Widok skrócony: sam procent i pasek (bez długich opisów).
+    // Nazwa wstawiana jest jako zwykły tekst (textContent), a nie HTML.
     card.innerHTML = `
       <div class="subject__head">
-        <strong>${subject.name}</strong>
+        <strong></strong>
         <div>
           <span class="subject__percent">${hasData ? stats.percent + '%' : '–'}</span>
           <button class="subject__remove" aria-label="Usuń">🗑</button>
@@ -34,6 +35,10 @@ export function renderSubjects(container, state, handlers) {
       <div class="progress"><div class="progress__bar" style="width: ${hasData ? stats.percent : 0}%"></div></div>
     `;
 
+    const nameEl = card.querySelector('strong');
+    nameEl.textContent = subject.name;
+    nameEl.title = 'Kliknij, aby zwinąć lub rozwinąć nazwę';
+    nameEl.onclick = () => card.classList.toggle('subject--expanded');
     card.querySelector('.subject__remove').onclick = () => handlers.onRemove(subject.id);
     container.appendChild(card);
   });

@@ -5,7 +5,7 @@ import { bindAuthForm } from './ui/auth.js';
 import { openAddClassDialog, openStatusDialog, openSubjectDialog } from './ui/dialogs.js';
 import { renderCalendar } from './ui/calendar.js';
 import { renderSubjects } from './ui/subjects.js';
-import { $ } from './utils.js';
+import { $, mobileQuery } from './utils.js';
 
 const authSection = $('#auth');
 const appSection = $('#app');
@@ -36,7 +36,9 @@ const handlers = {
   },
   onRemoveSubject(id) {
     const subject = store.getState().subjects.find((s) => s.id === id);
-    if (confirm(`Usunąć „${subject.name}" razem ze wszystkimi zajęciami?`)) safely(() => store.removeSubject(id));
+    if (confirm(`Usunąć „${subject.name}" razem ze wszystkimi zajęciami?`)) {
+      safely(() => store.removeSubject(id));
+    }
   },
 };
 
@@ -60,72 +62,86 @@ function bindControls() {
   $('#prev-month').onclick = () => store.shiftMonth(-1);
   $('#next-month').onclick = () => store.shiftMonth(1);
   $('#today').onclick = store.goToToday;
-  
+
   $('#add-subject').onclick = () =>
     openSubjectDialog({
       defaultColor: SUBJECT_COLORS[store.getState().subjects.length % SUBJECT_COLORS.length],
       onSave: (name, color) => safely(() => store.addSubject(name, color)),
     });
-    
-  $('#sign-out').onclick = async () => { 
-    await authApi.signOut(); 
-    if (window.resetAuthForm) window.resetAuthForm(); // Powrót do logowania
-    showAuth(); 
-  };
+}
 
-  // --- Obsługa okienka ustawień (zębatki) ---
+// Okienko ustawień (zębatka): widoczne dni tygodnia, w tym miesiącu albo we wszystkich.
+function bindSettings() {
   const settingsModal = $('#settings-modal');
   const mainModal = $('#modal');
   const overlay = $('#overlay');
-  
+  const applyAll = $('#apply-to-all-months');
+  const applyToggle = $('#apply-toggle');
+  const applyIndicator = $('#apply-indicator');
+  const dayInputs = () => document.querySelectorAll('#settings-days input');
+
+  const updateApplyToggle = () => {
+    const monthName = store.getState().month.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+    applyIndicator.textContent = applyAll.checked ? '(Tak ✓)' : `(Tylko: ${monthName})`;
+    applyToggle.classList.toggle('apply-toggle--on', applyAll.checked);
+  };
+
   $('#btn-settings').onclick = () => {
+    const state = store.getState();
+    const days = store.visibleDaysOf(state);
+
     mainModal.hidden = true;
     settingsModal.hidden = false;
     overlay.classList.add('open');
-    
-    // Zaznacz checkboxy na podstawie aktualnego stanu
-    const currentDays = store.getState().visibleDays;
-    document.querySelectorAll('#settings-days input').forEach(input => {
-      input.checked = currentDays.includes(Number(input.value));
+
+    dayInputs().forEach((input) => {
+      input.checked = days.includes(Number(input.value));
     });
+    // Jeśli ten miesiąc ma własne ustawienie, domyślnie edytujemy tylko jego.
+    applyAll.checked = !store.hasMonthOverride(state);
+    updateApplyToggle();
   };
 
+  applyAll.onchange = updateApplyToggle;
+
   $('#btn-save-settings').onclick = () => {
-    // Zbieramy wybrane checkboxy
-    const selected = Array.from(document.querySelectorAll('#settings-days input:checked'))
-      .map(input => Number(input.value));
-      
+    const selected = Array.from(dayInputs())
+      .filter((input) => input.checked)
+      .map((input) => Number(input.value));
+
     if (selected.length === 0) return alert('Wybierz chociaż jeden dzień!');
-    
-    // Zapisujemy nowy stan kalendarza i zamykamy okienko
-    store.setVisibleDays(selected);
+
+    safely(() => store.setVisibleDays(selected, { allMonths: applyAll.checked }));
     overlay.classList.remove('open');
     settingsModal.hidden = true;
     mainModal.hidden = false;
   };
-
-  // Animacja przycisku z ustawień z makiety
-  const applyAllCheckbox = $('#apply-to-all-months');
-  const applyIndicator = $('#apply-indicator');
-  if (applyAllCheckbox) {
-    applyAllCheckbox.onchange = (e) => {
-      applyIndicator.textContent = e.target.checked ? '(Tak ✓)' : '(Tylko tutaj)';
-      e.target.parentElement.style.background = e.target.checked ? 'color-mix(in srgb, #0ea5e9 10%, transparent)' : 'transparent';
-    };
-  }
 }
 
 async function init() {
   store.subscribe(render);
+  mobileQuery.addEventListener('change', () => render(store.getState()));
   bindControls();
-  bindAuthForm({
-    onSignIn: async (email, password) => { await authApi.signIn(email, password); await showApp(); },
+  bindSettings();
+
+  const authForm = bindAuthForm({
+    onSignIn: async (email, password) => {
+      await authApi.signIn(email, password);
+      await showApp();
+    },
     onSignUp: async (email, password) => {
       const { session } = await authApi.signUp(email, password);
       if (session) await showApp();
       else alert('Konto utworzone. Potwierdź e-mail i zaloguj się.');
     },
   });
+
+  $('#sign-out').onclick = async () => {
+    await authApi.signOut();
+    authForm.reset();
+    showAuth();
+  };
+
   (await authApi.getSession()) ? await showApp() : showAuth();
 }
 

@@ -5,36 +5,37 @@ export function bindAuthForm({ onSignIn, onSignUp }) {
   const emailInput = $('#auth-email');
   const passInput = $('#auth-password');
   const messageEl = $('#auth-message');
-  
+
   // Elementy UI
   const reqsPanel = $('#auth-requirements');
   const buttonsRow = $('#auth-buttons');
   const btnShowSignup = $('#btn-show-signup');
   const btnRealSignup = $('#auth-signup');
 
-  // Wymagania
+  // Wymagania hasła
   const reqLength = $('#req-length');
   const reqLower = $('#req-lower');
   const reqUpper = $('#req-upper');
   const reqNumber = $('#req-number');
 
-  // 1. Reset formularza do domyślnego stanu (widok logowania)
-  // Dodajemy to do obiektu window, aby main.js mogło to wywołać przy wylogowaniu
-  window.resetAuthForm = () => {
-    form.reset(); // Czyści wpisane e-mail i hasło
-    messageEl.textContent = ''; // Czyści komunikaty o błędach
-    buttonsRow.hidden = false; // Pokazuje Zaloguj / Załóż konto (szare)
-    reqsPanel.hidden = true; // Ukrywa panel wymagań
-    btnRealSignup.hidden = true; // Ukrywa pomarańczowe Załóż konto
-    validatePassword(); // Resetuje ptaszki (będą z powrotem szare, bo hasło puste)
-  };
+  // 1. Reset formularza do domyślnego stanu (widok logowania).
+  // Zwracamy go na zewnątrz, żeby main.js mogło go wywołać przy wylogowaniu.
+  function resetAuthForm() {
+    form.reset();
+    messageEl.textContent = '';
+    buttonsRow.hidden = false;
+    reqsPanel.hidden = true;
+    btnRealSignup.hidden = true;
+    btnRealSignup.textContent = 'Załóż konto';
+    validatePassword();
+  }
 
   // 2. Zmiana widoku na "Tryb rejestracji"
   btnShowSignup.onclick = () => {
-    buttonsRow.hidden = true; 
-    reqsPanel.hidden = false; 
-    btnRealSignup.hidden = false; 
-    validatePassword(); 
+    buttonsRow.hidden = true;
+    reqsPanel.hidden = false;
+    btnRealSignup.hidden = false;
+    validatePassword();
   };
 
   // 3. Walidacja hasła na żywo podczas wpisywania
@@ -54,8 +55,7 @@ export function bindAuthForm({ onSignIn, onSignUp }) {
     reqUpper.className = `req-item ${vUpper ? 'req-item--valid' : 'req-item--invalid'}`;
     reqNumber.className = `req-item ${vNumber ? 'req-item--valid' : 'req-item--invalid'}`;
 
-    const isValid = vLength && vLower && vUpper && vNumber;
-    btnRealSignup.disabled = !isValid;
+    btnRealSignup.disabled = !(vLength && vLower && vUpper && vNumber);
   }
 
   // 4. Logowanie (przycisk submit z formularza)
@@ -72,10 +72,10 @@ export function bindAuthForm({ onSignIn, onSignUp }) {
   // 5. Prawdziwe tworzenie konta (pomarańczowy przycisk)
   btnRealSignup.onclick = async () => {
     if (btnRealSignup.disabled) return;
-    
+
     if (!emailInput.value.includes('@')) {
-       messageEl.textContent = 'Wprowadź poprawny adres e-mail.';
-       return;
+      messageEl.textContent = 'Wprowadź poprawny adres e-mail.';
+      return;
     }
 
     messageEl.textContent = '';
@@ -89,4 +89,6 @@ export function bindAuthForm({ onSignIn, onSignUp }) {
       btnRealSignup.textContent = 'Załóż konto';
     }
   };
+
+  return { reset: resetAuthForm };
 }

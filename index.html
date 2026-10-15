@@ -7,12 +7,18 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+
+  <!-- Ekran logowania / rejestracji -->
   <section id="auth" class="auth card" hidden>
     <h1>Frekwencja</h1>
     <form id="auth-form">
-      <label class="field">E-mail<input type="email" id="auth-email" required autocomplete="email"></label>
-      <label class="field">Hasło<input type="password" id="auth-password" required minlength="6" autocomplete="current-password"></label>
-      
+      <label class="field">E-mail
+        <input type="email" id="auth-email" required autocomplete="email">
+      </label>
+      <label class="field">Hasło
+        <input type="password" id="auth-password" required minlength="6" autocomplete="current-password">
+      </label>
+
       <div id="auth-requirements" class="password-reqs" hidden>
         <div class="req-title">Hasło powinno zawierać minimum:</div>
         <ul class="req-list">
@@ -24,7 +30,7 @@
       </div>
 
       <p id="auth-message" class="auth__message"></p>
-      
+
       <div id="auth-buttons" class="row">
         <button type="submit" class="btn btn--primary" id="btn-login">Zaloguj</button>
         <button type="button" id="btn-show-signup" class="btn">Załóż konto</button>
@@ -33,6 +39,7 @@
     </form>
   </section>
 
+  <!-- Główna aplikacja -->
   <main id="app" class="app" hidden>
     <section class="card calendar-section">
       <div class="toolbar">
@@ -40,7 +47,8 @@
         <h2 id="month-title" class="toolbar__title"></h2>
         <button id="today" class="btn">Dziś</button>
         <button id="next-month" class="btn" aria-label="Następny miesiąc">›</button>
-        <button id="btn-settings" class="btn btn--ghost" aria-label="Ustawienia" style="font-size: 18px; padding: 4px 8px;">⚙️</button>
+        <button id="btn-settings" class="btn btn--ghost btn--icon" aria-label="Ustawienia" title="Ustawienia">⚙️</button>
+        <button id="sign-out" class="btn btn--ghost btn--icon" aria-label="Wyloguj" title="Wyloguj">🚪</button>
       </div>
       <div id="calendar" class="calendar"></div>
     </section>
@@ -49,24 +57,21 @@
       <h3>Przedmioty</h3>
       <div id="subjects"></div>
       <button id="add-subject" class="btn btn--primary btn--block">+ Dodaj przedmiot</button>
-      <div class="footer-actions">
-        <button id="sign-out" class="btn btn--small btn--ghost">Wyloguj</button>
-      </div>
     </aside>
   </main>
 
   <!-- Okienka dialogowe (szare tło) -->
   <div id="overlay" class="overlay">
-    
+
     <!-- Główne okienko (np. dodawanie przedmiotu, status zajęć) -->
     <div id="modal" class="modal"></div>
-    
+
     <!-- Okienko ustawień (zębatka) -->
     <div id="settings-modal" class="modal" hidden>
-      <h3 style="margin-bottom: 4px;">Ustawienia</h3>
-      <p style="font-size: 12px; font-weight: 600; margin: 0 0 4px;">Wyświetlanie kalendarza</p>
-      <p style="font-size: 11px; color: var(--muted); margin: 0 0 16px;">Zaznacz dni tygodnia, które mają być widoczne:</p>
-      
+      <h3 class="settings__title">Ustawienia</h3>
+      <p class="settings__label">Wyświetlanie kalendarza</p>
+      <p class="settings__hint">Zaznacz dni tygodnia, które mają być widoczne:</p>
+
       <!-- Siatka dwukolumnowa na dni -->
       <div id="settings-days" class="settings-grid">
         <label class="checkbox-row">Poniedziałek <input type="checkbox" value="1"></label>
@@ -78,18 +83,20 @@
         <label class="checkbox-row">Czwartek <input type="checkbox" value="4"></label>
       </div>
 
-      <!-- Przycisk "zastosuj we wszystkich miesiącach" -->
-      <label style="display: block; margin-top: 16px; padding: 12px; border: 2px solid #0ea5e9; border-radius: 8px; text-align: center; cursor: pointer; color: #0ea5e9; font-weight: 500; font-size: 12px; transition: background 0.2s;">
-        <input type="checkbox" id="apply-to-all-months" checked style="display: none;">
-        Czy zastosować to ustawienie we wszystkich miesiącach? <span id="apply-indicator" style="font-weight: bold;">(Tak ✓)</span>
+      <!-- Przełącznik "zastosuj we wszystkich miesiącach" / "tylko w tym miesiącu" -->
+      <label id="apply-toggle" class="apply-toggle apply-toggle--on">
+        <input type="checkbox" id="apply-to-all-months" checked hidden>
+        Czy zastosować to ustawienie we wszystkich miesiącach?
+        <span id="apply-indicator" class="apply-toggle__indicator">(Tak ✓)</span>
       </label>
 
-      <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px;">
+      <div class="settings__footer">
         <button id="btn-save-settings" class="btn btn--primary btn--block">Zapisz</button>
       </div>
     </div>
 
   </div>
+
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

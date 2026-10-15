@@ -1,15 +1,15 @@
 import { subjectsApi, classesApi, profileApi } from './api.js';
-import { STATUS } from './constants.js';
-import { addDays, fromDateKey, toDateKey } from './utils.js';
+import { DEFAULT_VISIBLE_DAYS, STATUS } from './constants.js';
+import { addDays, fromDateKey, toDateKey, toMonthKey } from './utils.js';
 
 const startOfMonth = (d) => new Date(d.getFullYear(), d.getMonth(), 1);
 
-// Stan aplikacji - domyślnie pokazujemy wszystkie dni tygodnia (0 to niedziela)
-const state = { 
-  subjects: [], 
-  classes: [], 
+const state = {
+  subjects: [],
+  classes: [],
   month: startOfMonth(new Date()),
-  visibleDays: [1, 2, 3, 4, 5, 6, 0] 
+  visibleDays: [...DEFAULT_VISIBLE_DAYS], // ustawienie dla wszystkich miesięcy (0 = niedziela)
+  monthOverrides: {},                     // wyjątki: { "2026-10": [1, 2, 3] }
 };
 const listeners = new Set();
 
@@ -17,24 +17,34 @@ export const getState = () => state;
 export const subscribe = (fn) => listeners.add(fn);
 const notify = () => listeners.forEach((fn) => fn(state));
 
-export async function load() {
-  const [loadedSubjects, loadedClasses, savedDays] = await Promise.all([
-    subjectsApi.list(), 
-    classesApi.list(),
-    profileApi.getSettings() // Pobieranie ustawień użytkownika z bazy
-  ]);
-  
-  state.subjects = loadedSubjects;
-  state.classes = loadedClasses;
-  if (savedDays) state.visibleDays = savedDays;
-  
-  notify();
+// --- Widoczne dni tygodnia ---
+export const hasMonthOverride = (s = state, month = s.month) => toMonthKey(month) in s.monthOverrides;
+export const visibleDaysOf = (s = state, month = s.month) => s.monthOverrides[toMonthKey(month)] ?? s.visibleDays;
+
+export async function setVisibleDays(days, { allMonths }) {
+  if (allMonths) {
+    state.visibleDays = days;
+    state.monthOverrides = {}; // ustawienie ogólne zastępuje wyjątki
+  } else {
+    state.monthOverrides = { ...state.monthOverrides, [toMonthKey(state.month)]: days };
+  }
+  notify(); // natychmiastowe odświeżenie kalendarza
+  await profileApi.updateSettings({ visibleDays: state.visibleDays, monthOverrides: state.monthOverrides });
 }
 
-export async function setVisibleDays(daysArray) {
-  state.visibleDays = daysArray;
-  notify(); // Natychmiastowe odświeżenie interfejsu (kalendarza)
-  await profileApi.updateSettings(daysArray); // Zapis ustawień w tle do Supabase
+// --- Dane ---
+export async function load() {
+  const [subjects, classes, settings] = await Promise.all([
+    subjectsApi.list(),
+    classesApi.list(),
+    profileApi.getSettings(),
+  ]);
+
+  state.subjects = subjects;
+  state.classes = classes;
+  state.visibleDays = settings?.visible_days ?? [...DEFAULT_VISIBLE_DAYS];
+  state.monthOverrides = settings?.month_overrides ?? {};
+  notify();
 }
 
 export function shiftMonth(delta) {

@@ -1,8 +1,10 @@
-import { WEEKDAYS } from '../constants.js';
-import { addDays, formatRange, toDateKey } from '../utils.js';
+import { MOBILE_NAME_LIMIT, WEEKDAY_JS_INDEXES, WEEKDAYS } from '../constants.js';
+import { visibleDaysOf } from '../store.js';
+import { addDays, formatRange, isMobile, toDateKey, truncate } from '../utils.js';
 
-function visibleDays(month) {
-  const offset = (month.getDay() + 6) % 7; 
+// Wszystkie dni siatki miesiąca (pełne tygodnie od poniedziałku do niedzieli).
+function monthGridDays(month) {
+  const offset = (month.getDay() + 6) % 7;
   const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
   const total = Math.ceil((offset + daysInMonth) / 7) * 7;
   const start = addDays(month, -offset);
@@ -17,9 +19,9 @@ function createElement(tag, className, text) {
 }
 
 function createChip(cls, subject, onClick) {
-  const chip = createElement('div', `chip chip--${cls.status}`);
-  chip.title = subject.name;
-  chip.innerHTML = `<span class="chip-time">${formatRange(cls)}</span> ${subject.name}`;
+  const label = isMobile() ? truncate(subject.name, MOBILE_NAME_LIMIT) : subject.name;
+  const chip = createElement('div', `chip chip--${cls.status}`, label);
+  chip.title = `${formatRange(cls)} ${subject.name}`;
   chip.style.setProperty('--color', subject.color);
   chip.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -53,24 +55,17 @@ export function renderCalendar({ titleEl, gridEl }, state, handlers) {
   const byDate = new Map();
   state.classes.forEach((c) => byDate.set(c.date, [...(byDate.get(c.date) ?? []), c]));
 
-  // FILTROWANIE DNI TYGODNIA NA PODSTAWIE USTAWIEŃ (state.visibleDays)
-  const allowedDays = state.visibleDays; // tablica numerów 0-6 (0=Niedziela)
-  
-  // Filtrujemy nagłówki (Pn, Wt itp.)
-  // WEEKDAYS: ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd']
-  // Ich indexy w kalendarzu to Pn=1, Wt=2 ... Nd=0. (Zależnie jak ustalone, załóżmy standard js Date)
-  const mapping = [1, 2, 3, 4, 5, 6, 0]; // Indexy JS dla każdego elementu z WEEKDAYS
-  const filteredHeaders = WEEKDAYS
-    .filter((_, idx) => allowedDays.includes(mapping[idx]))
-    .map(name => createElement('div', 'weekday', name));
+  // Dni tygodnia widoczne w tym miesiącu (ustawienie ogólne albo wyjątek dla miesiąca)
+  const allowedDays = visibleDaysOf(state);
 
-  // Filtrujemy dni w siatce kalendarza
-  const allDays = visibleDays(state.month);
-  const filteredDays = allDays
-    .filter(date => allowedDays.includes(date.getDay()))
-    .map(date => createDay(date, state.month, byDate.get(toDateKey(date)) ?? [], state.subjects, handlers));
+  const headers = WEEKDAYS
+    .filter((_, i) => allowedDays.includes(WEEKDAY_JS_INDEXES[i]))
+    .map((name) => createElement('div', 'weekday', name));
 
-  // Ustawienie liczby kolumn w siatce kalendarza na podstawie wybranej ilości dni
-  gridEl.style.gridTemplateColumns = `repeat(${filteredHeaders.length}, minmax(0, 1fr))`;
-  gridEl.replaceChildren(...filteredHeaders, ...filteredDays);
+  const days = monthGridDays(state.month)
+    .filter((date) => allowedDays.includes(date.getDay()))
+    .map((date) => createDay(date, state.month, byDate.get(toDateKey(date)) ?? [], state.subjects, handlers));
+
+  gridEl.style.gridTemplateColumns = `repeat(${headers.length}, minmax(0, 1fr))`;
+  gridEl.replaceChildren(...headers, ...days);
 }

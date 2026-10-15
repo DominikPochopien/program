@@ -29,16 +29,19 @@ export const classesApi = {
   addMany: (rows) => client.from('classes').insert(rows).select().then(unwrap).then((r) => r.map(normalizeClass)),
   setStatus: (id, status) => client.from('classes').update({ status }).eq('id', id).then(unwrap),
   remove: (id) => client.from('classes').delete().eq('id', id).then(unwrap),
-  
 };
+
+// Ustawienia użytkownika: widoczne dni tygodnia (domyślnie i wyjątki dla pojedynczych miesięcy).
 export const profileApi = {
-  getSettings: () => client.from('profiles').select('visible_days').single().then(({ data, error }) => {
-    if (error && error.code !== 'PGRST116') throw error; // Ignoruj błąd jeśli tabeli jeszcze nie ma
-    return data?.visible_days;
-  }),
-  updateSettings: async (visible_days) => {
+  // Zwraca { visible_days, month_overrides } albo null, jeśli użytkownik nie ma jeszcze wiersza.
+  getSettings: () => client.from('profiles').select('visible_days, month_overrides').maybeSingle().then(unwrap),
+
+  updateSettings: async ({ visibleDays, monthOverrides }) => {
     const { data: { user } } = await client.auth.getUser();
     if (!user) return;
-    return client.from('profiles').upsert({ id: user.id, visible_days }).then(unwrap);
-  }
+    return client
+      .from('profiles')
+      .upsert({ id: user.id, visible_days: visibleDays, month_overrides: monthOverrides })
+      .then(unwrap);
+  },
 };

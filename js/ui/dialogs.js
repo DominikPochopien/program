@@ -1,17 +1,20 @@
-import { DEFAULT_DURATION_MIN, QUICK_START_TIMES, STATUS, STATUS_OPTIONS, SUBJECT_COLORS } from '../constants.js';
+import { DEFAULT_DURATION_MIN, MAX_SUBJECT_NAME_LENGTH, QUICK_START_TIMES, STATUS, STATUS_OPTIONS, SUBJECT_COLORS } from '../constants.js';
 import { $, addMinutes, escapeHtml, formatRange } from '../utils.js';
 
 const overlay = $('#overlay');
 const modal = $('#modal');
+const settingsModal = $('#settings-modal');
 
 overlay.addEventListener('click', (e) => e.target === overlay && closeDialog());
 
 export const closeDialog = () => overlay.classList.remove('open');
 
-function show(html) {
-  modal.innerHTML = html;
-  overlay.classList.add('open');
-}
+ function show(html) {
+     settingsModal.hidden = true;
+     modal.hidden = false;
+     modal.innerHTML = html;
+     overlay.classList.add('open');
+   }
 
 export function openAddClassDialog({ date, subjects, onSave }) {
   const options = subjects.map((s) => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
@@ -89,25 +92,47 @@ export function openSubjectDialog({ defaultColor, onSave }) {
   const swatches = SUBJECT_COLORS.map((c) => `<button type="button" class="swatch" data-color="${c}" style="background:${c}"></button>`).join('');
   show(`
     <h3>Nowy przedmiot</h3>
-    <label class="field">Nazwa<input id="n-name" placeholder="np. Matematyka" autofocus></label>
+    <label class="field">Nazwa
+      <input id="n-name" maxlength="${MAX_SUBJECT_NAME_LENGTH}" placeholder="np. Matematyka" autofocus>
+    </label>
+    <div class="field-hint"><span id="n-counter">0</span>/${MAX_SUBJECT_NAME_LENGTH}</div>
     <label class="field">Kolor</label>
     <div class="row" id="swatches">${swatches}</div>
-    <div class="row"><button class="btn" id="n-cancel">Anuluj</button><button class="btn btn--primary" id="n-save">Dodaj</button></div>`);
+    <div class="row">
+      <button class="btn" id="n-cancel">Zamknij</button>
+      <button class="btn" id="n-save-next">Dodaj kolejny</button>
+      <button class="btn btn--primary" id="n-save">Dodaj</button>
+    </div>`);
 
+  const nameInput = $('#n-name', modal);
+  const counter = $('#n-counter', modal);
+  const readName = () => nameInput.value.trim();
+  const nextColor = () => SUBJECT_COLORS[(SUBJECT_COLORS.indexOf(color) + 1) % SUBJECT_COLORS.length];
   const paint = () =>
     modal.querySelectorAll('.swatch').forEach((b) => b.classList.toggle('swatch--active', b.dataset.color === color));
-  const save = () => {
-    const name = $('#n-name', modal).value.trim();
-    if (!name) return;
-    onSave(name, color);
+
+  const saveAndClose = () => {
+    if (!readName()) return;
+    onSave(readName(), color);
     closeDialog();
+  };
+  const saveAndContinue = () => {
+    if (!readName()) return;
+    onSave(readName(), color);
+    color = nextColor();
+    paint();
+    nameInput.value = '';
+    counter.textContent = '0';
+    nameInput.focus();
   };
 
   paint();
+  nameInput.addEventListener('input', () => (counter.textContent = nameInput.value.length));
+  nameInput.addEventListener('keydown', (e) => e.key === 'Enter' && saveAndClose());
   $('#swatches', modal).addEventListener('click', (e) => {
     if (e.target.dataset.color) { color = e.target.dataset.color; paint(); }
   });
-  $('#n-name', modal).addEventListener('keydown', (e) => e.key === 'Enter' && save());
   $('#n-cancel', modal).onclick = closeDialog;
-  $('#n-save', modal).onclick = save;
+  $('#n-save-next', modal).onclick = saveAndContinue;
+  $('#n-save', modal).onclick = saveAndClose;
 }
